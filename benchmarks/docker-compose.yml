@@ -1,0 +1,42 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: adaptadorgeo-mysql
+    environment:
+      MYSQL_DATABASE: adaptadorgo_bench
+      MYSQL_USER: adaptadorgo
+      MYSQL_PASSWORD: adaptadorgo123!
+      MYSQL_ROOT_PASSWORD: root123!
+    ports:
+      - "3306:3306"
+    volumes:
+      - adaptadorgo-mysql-data:/var/lib/mysql
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: adaptadorgo-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: Your_strong_password123!
+    ports:
+      - "1433:1433"
+    volumes:
+      - adaptadorgo-sqlserver-data:/var/opt/mssql
+
+  postgresql:
+    image: postgis/postgis:16-3.4
+    container_name: adaptadorgo-postgresql
+    environment:
+      POSTGRES_DB: adaptadorgo_bench
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - adaptadorgo-postgresql-data:/var/lib/postgresql/data
+
+volumes:
+  adaptadorgo-mysql-data:
+  adaptadorgo-sqlserver-data:
+  adaptadorgo-postgresql-data:

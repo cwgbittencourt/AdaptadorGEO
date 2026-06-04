@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="AdaptadorGEO/AdaptadorGEO.csproj" />
+  <Project Path="AdaptadorGEO.Integration/AdaptadorGEO.Integration.csproj" />
+  <Project Path="AdaptadorGEO.Tests/AdaptadorGEO.Tests.csproj" />
+  <Project Path="benchmarks/AdaptadorGEO.Benchmarks/AdaptadorGEO.Benchmarks.csproj" />
+  <Project Path="samples/AdaptadorGEO.Samples.AdoNet/AdaptadorGEO.Samples.AdoNet.csproj" />
+  <Project Path="samples/AdaptadorGEO.Samples.Dapper/AdaptadorGEO.Samples.Dapper.csproj" />
+  <Project Path="samples/AdaptadorGEO.Samples.EFCore/AdaptadorGEO.Samples.EFCore.csproj" />
+</Solution>
