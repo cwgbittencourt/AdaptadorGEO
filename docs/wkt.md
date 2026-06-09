@@ -1,10 +1,41 @@
-# WKT
+# WKT no AdaptadorGEO
 
-O `AdaptadorGEO` agora expõe uma fachada pública para trabalhar com WKT sem depender de banco de dados, ORM ou conexão.
+## Objetivo
 
-## Fachada pública
+O `AdaptadorGEO` pode converter entre os tipos geométricos internos e WKT sem depender de banco de dados, ORM ou conexão.
 
-Use `GeoFormats` para converter entre geometria interna e WKT:
+Isso é útil quando a aplicação precisa serializar ou ler geometrias em texto WKT antes de gerar SQL espacial.
+
+## Ordem das coordenadas
+
+O WKT usa a ordem:
+
+```txt
+longitude latitude
+```
+
+No `AdaptadorGEO`, o ponto interno continua sendo:
+
+```csharp
+new GeoPoint(latitude, longitude)
+```
+
+Exemplo:
+
+```csharp
+var point = new GeoPoint(-23.55052, -46.63331);
+var wkt = AdaptadorGEO.Formats.GeoFormats.Render(point);
+```
+
+WKT esperado:
+
+```txt
+POINT(-46.63331 -23.55052)
+```
+
+## Converter GeoGeometry para WKT
+
+Use a fachada pública `GeoFormats`:
 
 ```csharp
 using AdaptadorGEO;
@@ -22,16 +53,21 @@ var wkt = GeoFormats.Render(polygon);
 var parsed = GeoFormats.Parse<Polygon>(wkt);
 ```
 
-## Saída WKT
+## Converter WKT para GeoGeometry
 
-A renderização mantém a ordem `Longitude Latitude` exigida pelo WKT:
+O parse também é feito pela fachada pública:
 
-- `GeoPoint(-23.55, -46.63)` vira `POINT(-46.63 -23.55)`
-- `LineString`, `Polygon`, `MultiPoint`, `MultiLineString`, `MultiPolygon` e `GeometryCollection` seguem o mesmo padrão
+```csharp
+using AdaptadorGEO.Geometry;
 
-## Parser WKT
+var wkt = "POINT(-46.63331 -23.55052)";
 
-O parser aceita os seguintes tipos:
+var geometry = AdaptadorGEO.Formats.GeoFormats.Parse<GeoGeometry>(wkt);
+```
+
+## Tipos suportados
+
+O parser aceita:
 
 - `POINT`
 - `LINESTRING`
@@ -40,15 +76,6 @@ O parser aceita os seguintes tipos:
 - `MULTILINESTRING`
 - `MULTIPOLYGON`
 - `GEOMETRYCOLLECTION`
-
-Exemplo:
-
-```csharp
-using AdaptadorGEO;
-using AdaptadorGEO.Geometry;
-
-var geometry = GeoFormats.Parse<GeoGeometry>("POINT(-46.63331 -23.55052)");
-```
 
 ## Validações
 

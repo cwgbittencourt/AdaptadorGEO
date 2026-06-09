@@ -37,6 +37,7 @@ Com esta solução você pode:
 
 - representar geometrias como `Point`, `LineString`, `Polygon`, `MultiPoint`, `MultiLineString`, `MultiPolygon` e `GeometryCollection`
 - montar expressões espaciais como `Buffer`, `Contains`, `Intersects`, `Within` e `Distance`
+- converter geometrias para e a partir de WKT e GeoJSON com as fachadas públicas
 - resolver automaticamente o tradutor correto com `GeoDatabase` ou `AsGeoDatabase()`
 - traduzir essas expressões para SQL nativo de MySQL, SQL Server e PostgreSQL/PostGIS
 - receber um `SqlFragment` com `CommandText` e `Parameters`
@@ -482,12 +483,14 @@ Os exemplos ficam separados da biblioteca principal e não são incluídos no pa
 - `samples/AdaptadorGEO.Samples.AdoNet`
 - `samples/AdaptadorGEO.Samples.Dapper`
 - `samples/AdaptadorGEO.Samples.EFCore`
+- `samples/AdaptadorGEO.Samples.GeoJson`
 
 Cada projeto mostra um caminho de uso diferente:
 
 - ADO.NET puro com `DbConnection` e `DbCommand`
 - Dapper com `AsGeoDatabase()` e `QuerySqlFragment`
 - EF Core com `DatabaseFacade.AsGeoDatabase()`
+- GeoJSON com `AdaptadorGEO.Formats.GeoFormats.ToGeoJson()` e `FromGeoJson()`
 
 ## Formato de saída
 
@@ -552,7 +555,7 @@ Detalhes completos: [docs/wkt.md](docs/wkt.md)
 
 `AdaptadorGEO` também expõe uma fachada pública para converter geometrias internas para GeoJSON e ler GeoJSON de volta para os tipos internos.
 
-Exemplo:
+Use `GeoFormats` para converter entre geometria interna e GeoJSON:
 
 ```csharp
 using AdaptadorGEO.Geometry;

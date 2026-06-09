@@ -170,7 +170,8 @@ Se você quiser uma regra simples, pense assim:
 - se você está com Dapper: use `connection.AsGeoDatabase()`
 - se você está com EF Core: use `dbContext.Database.AsGeoDatabase()`
 - se quiser algo avançado: use o tradutor direto do provider
-- se precisar de ida e volta entre geometria e texto: use [docs/wkt.md](docs/wkt.md)
+- se quiser converter entre geometria interna e WKT: use [docs/wkt.md](docs/wkt.md)
+- se quiser receber GeoJSON na API: use [docs/geojson.md](docs/geojson.md)
 
 ## O que a biblioteca não faz
 
@@ -272,7 +273,8 @@ update.ExecuteNonQuery();
 
 Esse modelo deixa a persistência sob responsabilidade da aplicação, enquanto o `AdaptadorGEO` cuida da parte espacial e da tradução para o banco configurado.
 
-Se você também precisa converter a geometria para ou a partir de WKT antes de persistir, veja: [docs/wkt.md](docs/wkt.md).
+Se você precisa converter a geometria para ou a partir de WKT antes de persistir, veja: [docs/wkt.md](docs/wkt.md).
+Se você recebe GeoJSON antes de persistir, veja: [docs/geojson.md](docs/geojson.md).
 
 ## Em uma frase
 

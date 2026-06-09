@@ -4,7 +4,7 @@
 
 O `AdaptadorGEO` pode converter entre os tipos geométricos internos e GeoJSON sem depender de banco de dados, ORM ou frontend.
 
-Isso é útil quando uma API recebe geometrias desenhadas em mapas web, como Leaflet ou OpenLayers, e precisa transformar esse payload em tipos internos antes de gerar SQL espacial.
+Isso é útil quando a aplicação recebe geometrias desenhadas em mapas web, como Leaflet ou OpenLayers, e precisa transformar esse payload em tipos internos antes de gerar SQL espacial.
 
 ## Ordem das coordenadas
 
@@ -71,7 +71,7 @@ var json = """
 var geometry = AdaptadorGEO.Formats.GeoFormats.FromGeoJson(json);
 ```
 
-## Trabalhando com Feature
+## Feature
 
 `Feature` preserva a geometria e um dicionário de propriedades:
 
@@ -97,7 +97,7 @@ var properties = feature.Properties;
 
 As `properties` não são misturadas com `GeoGeometry`.
 
-## Trabalhando com FeatureCollection
+## FeatureCollection
 
 `FeatureCollection` preserva a lista de features:
 

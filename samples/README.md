@@ -1,6 +1,6 @@
 # Samples
 
- Este diretório contém quatro projetos de exemplo separados da biblioteca principal.
+Este diretório contém quatro projetos de exemplo separados da biblioteca principal.
 
 Eles existem apenas para demonstrar o uso da DLL `AdaptadorGEO` e não fazem parte do pacote publicado.
 
@@ -84,13 +84,13 @@ Os exemplos usam strings de conexão ilustrativas. Ajuste os valores para o seu 
 
 ## WKT
 
-Se você quiser trabalhar com ida e volta entre geometria interna e texto WKT, veja a documentação específica:
+Se você quiser converter entre geometria interna e WKT, veja a documentação específica:
 
 - [docs/wkt.md](../docs/wkt.md)
 
 ## GeoJSON
 
-Se você quiser ver um exemplo executável de ida e volta entre geometria interna e GeoJSON, rode:
+Se você quiser ver um exemplo executável de conversão entre geometria interna e GeoJSON, rode:
 
 - `AdaptadorGEO.Samples.GeoJson`
 - [docs/geojson.md](../docs/geojson.md)
