@@ -9,25 +9,36 @@ internal static class Program
     {
         // A aplicação já possui a conexão concreta; a fachada resolve o provider.
         using var connection = new SqlConnection("Server=localhost;Database=Geo;Trusted_Connection=True;TrustServerCertificate=True");
+        connection.Open();
 
         // Monta a expressão espacial e traduz para SQL nativo.
         var geo = GeoDatabase.For(connection);
-        var fragment = geo.Translate(
-            Geo.Column("area").Within(Geo.Point(-23.55052, -46.63331)));
+        var areaFragment = geo.Translate(
+            Geo.Literal(Geo.Polygon(
+                Geo.Point(-23.55, -46.63),
+                Geo.Point(-23.56, -46.64),
+                Geo.Point(-23.57, -46.65),
+                Geo.Point(-23.55, -46.63))));
 
-        // ADO.NET executa o SQL com parâmetros que vieram do fragmento.
+        // ADO.NET executa o SQL com a geometria já traduzida para o provider ativo.
         using var command = new SqlCommand
         {
-            CommandText = fragment.CommandText
+            Connection = connection,
+            CommandText = $@"
+INSERT INTO regions (name, area)
+VALUES (@name, {areaFragment.CommandText});"
         };
 
-        foreach (var parameter in fragment.Parameters)
+        command.Parameters.AddWithValue("@name", "Região Central");
+
+        foreach (var parameter in areaFragment.Parameters)
         {
             command.Parameters.AddWithValue(parameter.Name, parameter.Value ?? DBNull.Value);
         }
 
         Console.WriteLine("ADO.NET sample");
         Console.WriteLine($"Provider: {geo.ProviderName}");
+        Console.WriteLine("Insert command:");
         Console.WriteLine("CommandText:");
         Console.WriteLine(command.CommandText);
         Console.WriteLine("Parameters:");

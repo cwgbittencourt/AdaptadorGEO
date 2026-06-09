@@ -6,4 +6,5 @@
   <Project Path="samples/AdaptadorGEO.Samples.AdoNet/AdaptadorGEO.Samples.AdoNet.csproj" />
   <Project Path="samples/AdaptadorGEO.Samples.Dapper/AdaptadorGEO.Samples.Dapper.csproj" />
   <Project Path="samples/AdaptadorGEO.Samples.EFCore/AdaptadorGEO.Samples.EFCore.csproj" />
+  <Project Path="samples/AdaptadorGEO.Samples.GeoJson/AdaptadorGEO.Samples.GeoJson.csproj" />
 </Solution>

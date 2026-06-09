@@ -20,6 +20,8 @@ O pacote principal não abre conexão com banco nem calcula resultados espaciais
 - [Exemplos](#exemplos)
 - [Formato de saída](#formato-de-saída)
 - [Restrições](#restrições)
+- [WKT](#wkt)
+- [GeoJSON](#geojson)
 - [Mais detalhes](#mais-detalhes)
 
 ## Pacotes
@@ -315,6 +317,95 @@ O helper:
 - converte `null` para `DBNull.Value`
 - executa o SQL através de `DatabaseFacade`
 
+## Exemplo de persistência
+
+Se a sua aplicação precisa criar ou atualizar uma região no banco, o fluxo continua sendo o mesmo:
+
+- montar a geometria em C#;
+- traduzir essa geometria com `GeoDatabase`;
+- encaixar o `SqlFragment` no `INSERT` ou `UPDATE`;
+- executar o comando com a infraestrutura da aplicação.
+
+### Exemplo com ADO.NET
+
+```csharp
+using AdaptadorGEO;
+using Microsoft.Data.SqlClient;
+
+using var connection = new SqlConnection("Server=localhost;Database=Geo;Trusted_Connection=True;TrustServerCertificate=True");
+connection.Open();
+
+var geo = GeoDatabase.For(connection);
+
+var areaFragment = geo.Translate(
+    Geo.Polygon(
+        Geo.Point(-23.55, -46.63),
+        Geo.Point(-23.56, -46.64),
+        Geo.Point(-23.57, -46.65),
+        Geo.Point(-23.55, -46.63)));
+
+using var insert = connection.CreateCommand();
+insert.CommandText = $@"
+INSERT INTO regions (name, area)
+VALUES (@name, {areaFragment.CommandText});";
+
+insert.Parameters.AddWithValue("@name", "Região Central");
+
+foreach (var parameter in areaFragment.Parameters)
+{
+    insert.Parameters.AddWithValue(parameter.Name, parameter.Value ?? DBNull.Value);
+}
+
+insert.ExecuteNonQuery();
+```
+
+Neste exemplo:
+
+- `GeoDatabase.For(connection)` resolve o provider ativo;
+- `geo.Translate(...)` gera o trecho espacial no dialeto correto do banco;
+- `areaFragment.CommandText` entra no `INSERT`;
+- `areaFragment.Parameters` fornece os valores que a aplicação precisa enviar.
+
+### Exemplo de atualização
+
+O mesmo padrão vale para `UPDATE`:
+
+```csharp
+using AdaptadorGEO;
+using Microsoft.Data.SqlClient;
+
+using var connection = new SqlConnection("Server=localhost;Database=Geo;Trusted_Connection=True;TrustServerCertificate=True");
+connection.Open();
+
+var geo = GeoDatabase.For(connection);
+
+var areaFragment = geo.Translate(
+    Geo.Polygon(
+        Geo.Point(-23.50, -46.60),
+        Geo.Point(-23.51, -46.61),
+        Geo.Point(-23.52, -46.60),
+        Geo.Point(-23.50, -46.60)));
+
+using var update = connection.CreateCommand();
+update.CommandText = $@"
+UPDATE regions
+SET name = @name,
+    area = {areaFragment.CommandText}
+WHERE id = @id;";
+
+update.Parameters.AddWithValue("@id", 10);
+update.Parameters.AddWithValue("@name", "Nova Região");
+
+foreach (var parameter in areaFragment.Parameters)
+{
+    update.Parameters.AddWithValue(parameter.Name, parameter.Value ?? DBNull.Value);
+}
+
+update.ExecuteNonQuery();
+```
+
+Esse modelo deixa a persistência sob responsabilidade da aplicação, enquanto o `AdaptadorGEO` cuida da parte espacial e da tradução para o banco configurado.
+
 ## Performance
 
 `AdaptadorGEO` foi desenhado para ter baixo overhead de tradução.
@@ -423,11 +514,76 @@ Isso significa:
 - a biblioteca não consulta banco de dados diretamente
 - os helpers de integração não fazem tradução geométrica por conta própria
 
+## WKT
+
+`AdaptadorGEO` também expõe uma fachada pública para trabalhar com WKT sem depender de banco de dados, ORM ou conexão.
+
+Use `GeoFormats` para converter entre geometria interna e WKT:
+
+```csharp
+using AdaptadorGEO;
+using AdaptadorGEO.Geometry;
+
+var polygon = new Polygon(new[]
+{
+    new GeoPoint(-23.55, -46.63),
+    new GeoPoint(-23.56, -46.64),
+    new GeoPoint(-23.57, -46.65),
+    new GeoPoint(-23.55, -46.63)
+});
+
+var wkt = GeoFormats.Render(polygon);
+var parsed = GeoFormats.Parse<Polygon>(wkt);
+```
+
+O parser aceita:
+
+- `POINT`
+- `LINESTRING`
+- `POLYGON`
+- `MULTIPOINT`
+- `MULTILINESTRING`
+- `MULTIPOLYGON`
+- `GEOMETRYCOLLECTION`
+
+Detalhes completos: [docs/wkt.md](docs/wkt.md)
+
+## GeoJSON
+
+`AdaptadorGEO` também expõe uma fachada pública para converter geometrias internas para GeoJSON e ler GeoJSON de volta para os tipos internos.
+
+Exemplo:
+
+```csharp
+using AdaptadorGEO.Geometry;
+
+var point = new GeoPoint(-23.55052, -46.63331);
+
+var json = AdaptadorGEO.Formats.GeoFormats.ToGeoJson(point);
+var geometry = AdaptadorGEO.Formats.GeoFormats.FromGeoJson(json);
+```
+
+O parser aceita:
+
+- `Point`
+- `LineString`
+- `Polygon`
+- `MultiPoint`
+- `MultiLineString`
+- `MultiPolygon`
+- `GeometryCollection`
+- `Feature`
+- `FeatureCollection`
+
+Detalhes completos: [docs/geojson.md](docs/geojson.md)
+
 ## Mais detalhes
 
 - Contrato espacial: [docs/spatial-provider-contract.md](docs/spatial-provider-contract.md)
 - Uso geral: [docs/spatial-sql-usage.md](docs/spatial-sql-usage.md)
 - Helpers de integração: [docs/integration-helpers.md](docs/integration-helpers.md)
+- WKT: [docs/wkt.md](docs/wkt.md)
+- GeoJSON: [docs/geojson.md](docs/geojson.md)
 - Performance benchmark: [docs/performance-benchmark.md](docs/performance-benchmark.md)
 - Uso final: [docs/uso-final.md](docs/uso-final.md)
 - Samples: [samples/README.md](samples/README.md)

@@ -170,6 +170,7 @@ Se você quiser uma regra simples, pense assim:
 - se você está com Dapper: use `connection.AsGeoDatabase()`
 - se você está com EF Core: use `dbContext.Database.AsGeoDatabase()`
 - se quiser algo avançado: use o tradutor direto do provider
+- se precisar de ida e volta entre geometria e texto: use [docs/wkt.md](docs/wkt.md)
 
 ## O que a biblioteca não faz
 
@@ -181,6 +182,97 @@ Ela não:
 - substitui o seu ORM ou ADO.NET
 
 Ela prepara a tradução espacial.
+
+## Exemplo de persistência
+
+Se a sua aplicação precisa criar ou atualizar uma região no banco, o fluxo continua sendo o mesmo:
+
+- montar a geometria em C#;
+- traduzir essa geometria com `GeoDatabase`;
+- encaixar o `SqlFragment` no `INSERT` ou `UPDATE`;
+- executar o comando com a infraestrutura da aplicação.
+
+### Exemplo com ADO.NET
+
+```csharp
+using AdaptadorGEO;
+using Microsoft.Data.SqlClient;
+
+using var connection = new SqlConnection("Server=localhost;Database=Geo;Trusted_Connection=True;TrustServerCertificate=True");
+connection.Open();
+
+var geo = GeoDatabase.For(connection);
+
+var areaFragment = geo.Translate(
+    Geo.Polygon(
+        Geo.Point(-23.55, -46.63),
+        Geo.Point(-23.56, -46.64),
+        Geo.Point(-23.57, -46.65),
+        Geo.Point(-23.55, -46.63)));
+
+using var insert = connection.CreateCommand();
+insert.CommandText = $@"
+INSERT INTO regions (name, area)
+VALUES (@name, {areaFragment.CommandText});";
+
+insert.Parameters.AddWithValue("@name", "Região Central");
+
+foreach (var parameter in areaFragment.Parameters)
+{
+    insert.Parameters.AddWithValue(parameter.Name, parameter.Value ?? DBNull.Value);
+}
+
+insert.ExecuteNonQuery();
+```
+
+Neste exemplo:
+
+- `GeoDatabase.For(connection)` resolve o provider ativo;
+- `geo.Translate(...)` gera o trecho espacial no dialeto correto do banco;
+- `areaFragment.CommandText` entra no `INSERT`;
+- `areaFragment.Parameters` fornece os valores que a aplicação precisa enviar.
+
+### Exemplo de atualização
+
+O mesmo padrão vale para `UPDATE`:
+
+```csharp
+using AdaptadorGEO;
+using Microsoft.Data.SqlClient;
+
+using var connection = new SqlConnection("Server=localhost;Database=Geo;Trusted_Connection=True;TrustServerCertificate=True");
+connection.Open();
+
+var geo = GeoDatabase.For(connection);
+
+var areaFragment = geo.Translate(
+    Geo.Polygon(
+        Geo.Point(-23.50, -46.60),
+        Geo.Point(-23.51, -46.61),
+        Geo.Point(-23.52, -46.60),
+        Geo.Point(-23.50, -46.60)));
+
+using var update = connection.CreateCommand();
+update.CommandText = $@"
+UPDATE regions
+SET name = @name,
+    area = {areaFragment.CommandText}
+WHERE id = @id;";
+
+update.Parameters.AddWithValue("@id", 10);
+update.Parameters.AddWithValue("@name", "Nova Região");
+
+foreach (var parameter in areaFragment.Parameters)
+{
+    update.Parameters.AddWithValue(parameter.Name, parameter.Value ?? DBNull.Value);
+}
+
+update.ExecuteNonQuery();
+```
+
+Esse modelo deixa a persistência sob responsabilidade da aplicação, enquanto o `AdaptadorGEO` cuida da parte espacial e da tradução para o banco configurado.
+
+Se você também precisa converter a geometria para ou a partir de WKT antes de persistir, veja: [docs/wkt.md](docs/wkt.md).
 
 ## Em uma frase
 
